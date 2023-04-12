@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>images/temperature-high-solid.svg</file>
+        <file>images/wind-solid.svg</file>
+        <file>images/weight-scale-solid.svg</file>
+    </qresource>
+</RCC>
