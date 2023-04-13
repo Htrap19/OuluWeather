@@ -7,9 +7,27 @@ import Backend
 Page {
     id: base_page
 
+    function showIndicator(show: boolean) {
+        base_indicator.running = show
+        base_scrollview.enabled = !show
+    }
+
     HighlightsBackend {
         id: base_highlightsbackend
+        onHighestTemperatureChanged:
+            base_page.highestTemperature = base_highlightsbackend.highestTemperature
+        onStrongestWindChanged:
+            base_page.strongestWind = base_highlightsbackend.strongestWind
+        onLowestPressureChanged:
+            base_page.lowestPressure = base_highlightsbackend.lowestPressure
+
+        onAllFinished:
+            showIndicator(false)
     }
+
+    property var highestTemperature: base_highlightsbackend.highestTemperature
+    property var strongestWind: base_highlightsbackend.strongestWind
+    property var lowestPressure: base_highlightsbackend.lowestPressure
 
     header: ToolBar {
         background: Rectangle {
@@ -21,6 +39,11 @@ Page {
             anchors {
                 fill: parent
                 rightMargin: 5
+            }
+
+            BusyIndicator {
+                id: base_indicator
+                running: false
             }
 
             Label {
@@ -35,7 +58,10 @@ Page {
             ComboBox {
                 Material.foreground: "white"
                 model: base_highlightsbackend.cities
-                onActivated: base_highlightsbackend.fetchStations(currentIndex)
+                onActivated: {
+                    showIndicator(true)
+                    base_highlightsbackend.fetchStations(currentIndex)
+                }
             }
         }
     }
@@ -62,9 +88,10 @@ Page {
     ScrollView {
         id: base_scrollview
         anchors.fill: parent
-        contentWidth: base_columnlayout.width
-        contentHeight: base_columnlayout.height
+//        contentWidth: base_columnlayout.width
+//        contentHeight: base_columnlayout.height
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        ScrollBar.horizontal.interactive: true
 
         ColumnLayout {
             id: base_columnlayout
@@ -92,9 +119,12 @@ Page {
                 }
 
                 ComboBox {
-                    Layout.fillWidth: parent.width < parent.height
-                    Layout.columnSpan: 2
+                    Layout.fillWidth: true
+                    Layout.columnSpan: parent.columns
                     model: base_highlightsbackend.stations
+                    onActivated: {
+                        base_highlightsbackend.onActivated(currentIndex)
+                    }
                 }
 
                 Text {
@@ -103,34 +133,35 @@ Page {
                 }
                 Text {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    text: "-2.0 C"
+                    text: "%1 C".arg((base_highlightsbackend.selectedStation ?? { temperature: "-" }).temperature)
                 }
 
                 Text { text: qsTr("Humidity:") }
-                Text { text: "60%" }
+                Text { text: "%1 %".arg((base_highlightsbackend.selectedStation ?? { humidity: "-" }).humidity) }
 
                 Text { text: qsTr("Visibility:") }
-                Text { text: "over 20 km" }
+                Text { text: "over %1 km".arg((base_highlightsbackend.selectedStation ?? { visibility: 0 }).visibility / 1000.0) }
 
                 Text {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     text: qsTr("Dewpoint:")
                 }
-                Text { text: "-1.4 C" }
+                Text { text: "%1 C".arg((base_highlightsbackend.selectedStation ?? { dewPoint: "-" }).dewPoint) }
 
                 Text { text: qsTr("Wind:") }
-                Text { text: "5 m/s" }
+                Text { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windSpeedMS: "-" }).windSpeedMS) }
 
-                Text { text: qsTr("Wind guests:") }
-                Text { text: "6 m/s" }
+                Text { text: qsTr("Wind gusts:") }
+                Text { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windGust: "-" } ).windGust) }
 
                 Text { text: qsTr("Pressure:") }
-                Text { text: "1032.2 hPA" }
+                Text { text: "%1 hPa".arg((base_highlightsbackend.selectedStation ?? { pressure: "-" }).pressure) }
             }
         }
     }
 
     Component.onCompleted: {
+        showIndicator(true)
         base_highlightsbackend.fetchStations()
     }
 }

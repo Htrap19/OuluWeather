@@ -18,10 +18,12 @@ protected slots:
     void parseJson(QNetworkReply *);
 
 signals:
+    void networkError(QNetworkReply*);
+    void parsingError(QString);
     void readyResponse(Json::Value, QNetworkReply *);
 
 private:
-    QScopedPointer<QNetworkAccessManager> m_Manager;
+    QNetworkAccessManager m_Manager;
 };
 
 #endif // NETWORKSERVICE_H

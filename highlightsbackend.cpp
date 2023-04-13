@@ -1,4 +1,5 @@
 #include "highlightsbackend.h"
+#include "stationforecastdata.h"
 
 #include <QThread>
 #include <algorithm>
@@ -8,8 +9,7 @@
 
 HighlightsBackend::HighlightsBackend(QObject *parent)
     : QObject{parent},
-    m_Cities({ "oulu", "helsinki" }),
-    m_Stations({}),
+    m_Cities({ "oulu", "helsinki", "lappeenranta" }),
     m_Service(parent)
 {
     connect(&m_Service, &NetworkService::readyResponse,
@@ -24,29 +24,62 @@ QStringList HighlightsBackend::cities()
 QStringList HighlightsBackend::stations()
 {
     QStringList names;
-    std::transform(m_Stations.begin(),
-                   m_Stations.end(),
+    std::transform(m_Data.begin(),
+                   m_Data.end(),
                    std::back_inserter(names),
-                   [](const StationData& i) { return i.name; });
+                   [](const std::pair<const uint32_t, StationForecastData>& i) { return i.second.name(); });
     return names;
 }
 
-QString HighlightsBackend::highestTemperature()
+StationForecastData *HighlightsBackend::highestTemperature()
 {
-    QString format = "%1 C";
-    if (m_ForecastData.empty())
-        return format.arg("-");
+    if (m_Data.empty())
+        return nullptr;
 
-    auto data = std::max_element(m_ForecastData.begin(),
-                                 m_ForecastData.end(),
-                                 [](const std::pair<uint32_t, ForecastData>& a,
-                                    const std::pair<uint32_t, ForecastData>& b)
+    auto data = std::max_element(m_Data.begin(),
+                                 m_Data.end(),
+                                 [](const std::pair<const uint32_t, StationForecastData>& a,
+                                    const std::pair<const uint32_t, StationForecastData>& b)
                                  {
-                                     return a.second.temperature < b.second.temperature;
+                                     return a.second.temperature() < b.second.temperature();
                                  });
+    return &(data->second);
+}
 
-    return format
-        .arg(QString::number(data->second.temperature));
+StationForecastData *HighlightsBackend::strongestWind()
+{
+    if (m_Data.empty())
+        return nullptr;
+
+    auto data = std::max_element(m_Data.begin(),
+                                 m_Data.end(),
+                                 [](const std::pair<const uint32_t, StationForecastData>& a,
+                                    const std::pair<const uint32_t, StationForecastData>& b)
+                                 {
+                                     return a.second.windSpeedMS() < b.second.windSpeedMS();
+                                 });
+    return &(data->second);
+}
+
+StationForecastData *HighlightsBackend::lowestPressure()
+{
+    if (m_Data.empty())
+        return nullptr;
+
+    auto data = std::min_element(m_Data.begin(),
+                                 m_Data.end(),
+                                 [](const std::pair<const uint32_t, StationForecastData>& a,
+                                    const std::pair<const uint32_t, StationForecastData>& b)
+                                 {
+                                     return (b.second.pressure() == 0 ||
+                                             a.second.pressure() < b.second.pressure());
+                                 });
+    return &(data->second);
+}
+
+StationForecastData *HighlightsBackend::selectedStation()
+{
+    return m_SelectedStation;
 }
 
 void HighlightsBackend::fetchStations(uint32_t cityIndex)
@@ -62,22 +95,28 @@ void HighlightsBackend::fetchForecastData(uint32_t stationId)
     m_Service.get(QUrl(url));
 }
 
+void HighlightsBackend::onActivated(int index)
+{
+    auto data = m_Data.begin();
+    std::advance(data, index);
+    m_SelectedStation = &(data->second);
+    emit selectedStationChanged();
+}
+
 void HighlightsBackend::response(Json::Value content, QNetworkReply* reply)
 {
     // Response 1 - fetchStations
     if (content.isMember("municipalityCode"))
     {
-        m_Stations.clear();
-        m_ForecastData.clear();
+        m_Data.clear();
         for (auto& v : content["observationStations"]
                               ["dropdownItems"])
         {
-            auto& obj = m_Stations.emplaceBack(StationData{
-                v["distance"].asCString(),
-                v["station"].asCString(),
-                v["value"].asUInt()
-            });
-            fetchForecastData(obj.id);
+            uint32_t id = v["value"].asUInt();
+            auto& obj = m_Data[id];
+            obj.m_Distance = v["distance"].asCString();
+            obj.m_Name     = v["station"].asCString();
+            fetchForecastData(id);
             emit stationsChanged();
         }
         return;
@@ -89,21 +128,24 @@ void HighlightsBackend::response(Json::Value content, QNetworkReply* reply)
     auto query = reply->url().query();
     uint32_t id = query.split('&')[0].split('=')[1].toUInt();
 
-    m_ForecastData[id] = {
-        data["t2m"].asFloat(),
-        data["dewPoint"].asFloat(),
-        data["WindSpeedMS"].asFloat(),
-        data["WindGust"].asFloat(),
-        data["Pressure"].asFloat(),
-        data["Humidity"].asInt(),
-        data["Visibility"].asInt(),
-    };
+    auto& obj = m_Data[id];
+    obj.m_Temperature = data["t2m"].asFloat();
+    obj.m_DewPoint    = data["DewPoint"].asFloat();
+    obj.m_WindSpeedMS = data["WindSpeedMS"].asFloat();
+    obj.m_WindGust    = data["WindGust"].asFloat();
+    obj.m_Pressure    = data["Pressure"].asFloat();
+    obj.m_Humidity    = data["Humidity"].asInt();
+    obj.m_Visibility  = data["Visibility"].asInt();
 
-    if (m_Stations.size() == m_ForecastData.size())
-        emit highestTemperatureChanged();
-}
+    emit highestTemperatureChanged();
+    emit strongestWindChanged();
+    emit lowestPressureChanged();
+    onActivated(0);
 
-void HighlightsBackend::error()
-{
-    qDebug() << "Network Error!!!";
+    auto children = reply->manager()->findChildren<QNetworkReply*>();
+    if (std::all_of(children.begin(),
+                    children.end(),
+                    [](const QNetworkReply* child)
+                    { return child->isFinished(); }))
+        emit allFinished();
 }

@@ -17,6 +17,7 @@ qt_add_executable(appOuluWeather
     main.cpp
     networkservice.h networkservice.cpp
     highlightsbackend.h highlightsbackend.cpp
+    stationforecastdata.h stationforecastdata.cpp
 )
 
 qt_add_qml_module(appOuluWeather

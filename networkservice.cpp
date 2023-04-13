@@ -1,4 +1,5 @@
 #include "networkservice.h"
+#include "qnetworkreply.h"
 
 #include <QThread>
 #include <QDebug>
@@ -7,15 +8,15 @@
 
 NetworkService::NetworkService(QObject *parent)
     : QObject{parent},
-    m_Manager(new QNetworkAccessManager(this))
+    m_Manager(this)
 {
-    connect(m_Manager.get(), &QNetworkAccessManager::finished,
+    connect(&m_Manager, &QNetworkAccessManager::finished,
             this, &NetworkService::parseJson);
 }
 
 void NetworkService::get(QUrl url)
 {
-    m_Manager->get(QNetworkRequest(url));
+    m_Manager.get(QNetworkRequest(url));
 }
 
 void NetworkService::parseJson(QNetworkReply *reply)
@@ -23,21 +24,24 @@ void NetworkService::parseJson(QNetworkReply *reply)
     reply->deleteLater();
 
     if (reply->error() != QNetworkReply::NoError)
+    {
+        emit networkError(reply);
         return;
+    }
 
     auto res = reply->readAll().toStdString();
     Json::Value root;
     std::string err;
 
     Json::CharReaderBuilder builder;
-    const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+    const QScopedPointer<Json::CharReader> reader(builder.newCharReader());
 
     if (!reader->parse(res.c_str(),
                        res.c_str() + (int)res.size(),
                        &root,
                        &err))
     {
-        qDebug() << "Unable to parse json: " << err;
+        emit parsingError(QString::fromStdString(err));
         return;
     }
 

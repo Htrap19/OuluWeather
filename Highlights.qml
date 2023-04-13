@@ -31,9 +31,10 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
                 anchors.horizontalCenter: parent.horizontalCenter
+
                 Text {
                     id: highestTemperature_text
-                    text: base_highlightsbackend.highestTemperature
+                    text: "%1 C".arg((highestTemperature ?? { temperature: "-" }).temperature)
                     horizontalAlignment: Qt.AlignLeft
                     verticalAlignment: Qt.AlignVCenter
                     font.pointSize: 20
@@ -43,7 +44,7 @@ ColumnLayout {
                 Label {
                     id: temperatureDistance_text
                     color: "#808080"
-                    text: qsTr("3.6 km")
+                    text: "%1 km".arg((highestTemperature ?? { distance: "-" }).distance)
                     Layout.fillWidth: true
                     horizontalAlignment: Qt.AlignRight
                     verticalAlignment: Qt.AlignVCenter
@@ -53,7 +54,7 @@ ColumnLayout {
 
             Text {
                 id: temperatureStation_text
-                text: "Oulu Vihreäsaari harbour"
+                text: ((highestTemperature ?? { name: "-" }).name)
                 color: 'gray'
                 wrapMode: Text.WordWrap
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -82,7 +83,7 @@ ColumnLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
                 Text {
                     id: strongestWind_text
-                    text: qsTr("10 m/s")
+                    text: "%1 m/s".arg((strongestWind ?? { windSpeedMS: "-" }).windSpeedMS)
                     horizontalAlignment: Qt.AlignLeft
                     verticalAlignment: Qt.AlignVCenter
                     font.pointSize: 20
@@ -92,7 +93,7 @@ ColumnLayout {
                 Label {
                     id: windDistance_text
                     color: "#808080"
-                    text: qsTr("34.8 km")
+                    text: "%1 km".arg((strongestWind ?? { distance: "-" }).distance)
                     Layout.fillWidth: true
                     horizontalAlignment: Qt.AlignRight
                     verticalAlignment: Qt.AlignVCenter
@@ -102,7 +103,7 @@ ColumnLayout {
 
             Text {
                 id: windStation_text
-                text: "Hailuoto Keskikylä"
+                text: ((strongestWind ?? { name: "-" }).name)
                 color: 'gray'
                 wrapMode: Text.WordWrap
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -137,7 +138,7 @@ ColumnLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
                 Text {
                     id: lowestPressure_text
-                    text: qsTr("1029.7 hPA")
+                    text: "%1 hPa".arg((lowestPressure ?? { pressure: "-" }).pressure)
                     horizontalAlignment: Qt.AlignLeft
                     verticalAlignment: Qt.AlignVCenter
                     font.pointSize: 20
@@ -147,7 +148,7 @@ ColumnLayout {
                 Label {
                     id: pressureDistance_text
                     color: "#808080"
-                    text: qsTr("40.6 km")
+                    text: "%1 km".arg((lowestPressure ?? { distance: "-" }).distance)
                     Layout.fillWidth: true
                     horizontalAlignment: Qt.AlignRight
                     verticalAlignment: Qt.AlignVCenter
@@ -157,7 +158,7 @@ ColumnLayout {
 
             Text {
                 id: pressureStation_text
-                text: "Siikajoki Ruukki"
+                text: ((lowestPressure ?? { name: "-" }).name)
                 color: 'gray'
                 wrapMode: Text.WordWrap
                 anchors.horizontalCenter: parent.horizontalCenter

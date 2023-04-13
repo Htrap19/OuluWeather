@@ -4,7 +4,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Controls.Material
 
-Window {
+ApplicationWindow {
     id: main_window
     width: 640
     height: 480
