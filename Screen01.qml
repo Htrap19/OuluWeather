@@ -7,6 +7,10 @@ import Backend
 Page {
     id: base_page
 
+    property var highestTemperature: base_highlightsbackend.highestTemperature
+    property var strongestWind: base_highlightsbackend.strongestWind
+    property var lowestPressure: base_highlightsbackend.lowestPressure
+
     function showIndicator(show: boolean) {
         base_indicator.running = show
         base_scrollview.enabled = !show
@@ -14,28 +18,19 @@ Page {
 
     HighlightsBackend {
         id: base_highlightsbackend
-        onHighestTemperatureChanged:
-            base_page.highestTemperature = base_highlightsbackend.highestTemperature
-        onStrongestWindChanged:
-            base_page.strongestWind = base_highlightsbackend.strongestWind
-        onLowestPressureChanged:
-            base_page.lowestPressure = base_highlightsbackend.lowestPressure
 
-        onAllFinished:
+        onAllFinished: {
             showIndicator(false)
+            base_page.highestTemperature = base_highlightsbackend.highestTemperature
+            base_page.strongestWind = base_highlightsbackend.strongestWind
+            base_page.lowestPressure = base_highlightsbackend.lowestPressure
+        }
     }
 
-    property var highestTemperature: base_highlightsbackend.highestTemperature
-    property var strongestWind: base_highlightsbackend.strongestWind
-    property var lowestPressure: base_highlightsbackend.lowestPressure
-
     header: ToolBar {
-        background: Rectangle {
-            implicitHeight: 40
-            color: "#426731"
-        }
-
+        Material.foreground: "white"
         RowLayout {
+            spacing: 20
             anchors {
                 fill: parent
                 rightMargin: 5
@@ -44,6 +39,7 @@ Page {
             BusyIndicator {
                 id: base_indicator
                 running: false
+                Material.accent: "white"
             }
 
             Label {
@@ -52,26 +48,21 @@ Page {
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
                 Layout.fillWidth: true
-                color: "white"
             }
 
             ComboBox {
-                Material.foreground: "white"
                 model: base_highlightsbackend.cities
                 onActivated: {
                     showIndicator(true)
                     base_highlightsbackend.fetchStations(currentIndex)
                 }
+                Material.foreground: "white"
             }
         }
     }
 
     footer: ToolBar {
-        background: Rectangle {
-            implicitHeight: 20
-            color: "#426731"
-        }
-
+        Material.foreground: "white"
         RowLayout {
             anchors.fill: parent
             Label {
@@ -80,7 +71,6 @@ Page {
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
                 Layout.fillWidth: true
-                color: "white"
             }
         }
     }
@@ -88,8 +78,8 @@ Page {
     ScrollView {
         id: base_scrollview
         anchors.fill: parent
-//        contentWidth: base_columnlayout.width
-//        contentHeight: base_columnlayout.height
+        contentWidth: base_columnlayout.width
+        contentHeight: base_columnlayout.height
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
         ScrollBar.horizontal.interactive: true
 
@@ -112,7 +102,7 @@ Page {
                 columnSpacing: 20
                 rowSpacing: 10
 
-                Text {
+                Label {
                     text: qsTr("Stations")
                     Layout.columnSpan: 2
                     Layout.alignment: Qt.AlignTop | Qt.AlignLeft
@@ -122,40 +112,39 @@ Page {
                     Layout.fillWidth: true
                     Layout.columnSpan: parent.columns
                     model: base_highlightsbackend.stations
-                    onActivated: {
+                    onActivated:
                         base_highlightsbackend.onActivated(currentIndex)
-                    }
                 }
 
-                Text {
+                Label {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     text: qsTr("Temperature:")
                 }
-                Text {
+                Label {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     text: "%1 C".arg((base_highlightsbackend.selectedStation ?? { temperature: "-" }).temperature)
                 }
 
-                Text { text: qsTr("Humidity:") }
-                Text { text: "%1 %".arg((base_highlightsbackend.selectedStation ?? { humidity: "-" }).humidity) }
+                Label { text: qsTr("Humidity:") }
+                Label { text: "%1 %".arg((base_highlightsbackend.selectedStation ?? { humidity: "-" }).humidity) }
 
-                Text { text: qsTr("Visibility:") }
-                Text { text: "over %1 km".arg((base_highlightsbackend.selectedStation ?? { visibility: 0 }).visibility / 1000.0) }
+                Label { text: qsTr("Visibility:") }
+                Label { text: "over %1 km".arg((base_highlightsbackend.selectedStation ?? { visibility: 0 }).visibility / 1000.0) }
 
-                Text {
+                Label {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     text: qsTr("Dewpoint:")
                 }
-                Text { text: "%1 C".arg((base_highlightsbackend.selectedStation ?? { dewPoint: "-" }).dewPoint) }
+                Label { text: "%1 C".arg((base_highlightsbackend.selectedStation ?? { dewPoint: "-" }).dewPoint) }
 
-                Text { text: qsTr("Wind:") }
-                Text { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windSpeedMS: "-" }).windSpeedMS) }
+                Label { text: qsTr("Wind:") }
+                Label { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windSpeedMS: "-" }).windSpeedMS) }
 
-                Text { text: qsTr("Wind gusts:") }
-                Text { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windGust: "-" } ).windGust) }
+                Label { text: qsTr("Wind gusts:") }
+                Label { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windGust: "-" } ).windGust) }
 
-                Text { text: qsTr("Pressure:") }
-                Text { text: "%1 hPa".arg((base_highlightsbackend.selectedStation ?? { pressure: "-" }).pressure) }
+                Label { text: qsTr("Pressure:") }
+                Label { text: "%1 hPa".arg((base_highlightsbackend.selectedStation ?? { pressure: "-" }).pressure) }
             }
         }
     }

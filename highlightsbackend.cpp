@@ -7,9 +7,14 @@
 #include <string>
 #include <utility>
 
+const QStringList HighlightsBackend::s_Cities = {
+    "Oulu",
+    "Helsinki",
+    "Lappeenranta"
+};
+
 HighlightsBackend::HighlightsBackend(QObject *parent)
     : QObject{parent},
-    m_Cities({ "oulu", "helsinki", "lappeenranta" }),
     m_Service(parent)
 {
     connect(&m_Service, &NetworkService::readyResponse,
@@ -18,7 +23,7 @@ HighlightsBackend::HighlightsBackend(QObject *parent)
 
 QStringList HighlightsBackend::cities()
 {
-    return m_Cities;
+    return s_Cities;
 }
 
 QStringList HighlightsBackend::stations()
@@ -27,54 +32,24 @@ QStringList HighlightsBackend::stations()
     std::transform(m_Data.begin(),
                    m_Data.end(),
                    std::back_inserter(names),
-                   [](const std::pair<const uint32_t, StationForecastData>& i) { return i.second.name(); });
+                   [](ForecastData::value_type& i)
+                   { return i.second.name(); });
     return names;
 }
 
 StationForecastData *HighlightsBackend::highestTemperature()
 {
-    if (m_Data.empty())
-        return nullptr;
-
-    auto data = std::max_element(m_Data.begin(),
-                                 m_Data.end(),
-                                 [](const std::pair<const uint32_t, StationForecastData>& a,
-                                    const std::pair<const uint32_t, StationForecastData>& b)
-                                 {
-                                     return a.second.temperature() < b.second.temperature();
-                                 });
-    return &(data->second);
+    return m_HighestTemperature;
 }
 
 StationForecastData *HighlightsBackend::strongestWind()
 {
-    if (m_Data.empty())
-        return nullptr;
-
-    auto data = std::max_element(m_Data.begin(),
-                                 m_Data.end(),
-                                 [](const std::pair<const uint32_t, StationForecastData>& a,
-                                    const std::pair<const uint32_t, StationForecastData>& b)
-                                 {
-                                     return a.second.windSpeedMS() < b.second.windSpeedMS();
-                                 });
-    return &(data->second);
+    return m_StrongestWind;
 }
 
 StationForecastData *HighlightsBackend::lowestPressure()
 {
-    if (m_Data.empty())
-        return nullptr;
-
-    auto data = std::min_element(m_Data.begin(),
-                                 m_Data.end(),
-                                 [](const std::pair<const uint32_t, StationForecastData>& a,
-                                    const std::pair<const uint32_t, StationForecastData>& b)
-                                 {
-                                     return (b.second.pressure() == 0 ||
-                                             a.second.pressure() < b.second.pressure());
-                                 });
-    return &(data->second);
+    return m_LowestPressure;
 }
 
 StationForecastData *HighlightsBackend::selectedStation()
@@ -85,7 +60,7 @@ StationForecastData *HighlightsBackend::selectedStation()
 void HighlightsBackend::fetchStations(uint32_t cityIndex)
 {
     m_Service.get(QUrl(QString("https://en.ilmatieteenlaitos.fi/api/weather/forecasts?place=%1")
-                           .arg(m_Cities[cityIndex])));
+                           .arg(s_Cities[cityIndex].toLower())));
 }
 
 void HighlightsBackend::fetchForecastData(uint32_t stationId)
@@ -101,6 +76,40 @@ void HighlightsBackend::onActivated(int index)
     std::advance(data, index);
     m_SelectedStation = &(data->second);
     emit selectedStationChanged();
+}
+
+auto HighlightsBackend::calculateHightestTemperature()
+{
+    return std::max_element(m_Data.begin(),
+                            m_Data.end(),
+                            [](ForecastData::value_type& a,
+                               ForecastData::value_type& b)
+                            {
+                                return a.second.temperature() < b.second.temperature();
+                            });
+}
+
+auto HighlightsBackend::calculateStrongestWind()
+{
+    return std::max_element(m_Data.begin(),
+                            m_Data.end(),
+                            [](ForecastData::value_type& a,
+                               ForecastData::value_type& b)
+                            {
+                                return a.second.windSpeedMS() < b.second.windSpeedMS();
+                            });
+}
+
+auto HighlightsBackend::calculateLowestPressure()
+{
+    return std::min_element(m_Data.begin(),
+                            m_Data.end(),
+                            [](ForecastData::value_type& a,
+                               ForecastData::value_type& b)
+                            {
+                                return (b.second.pressure() == 0 ||
+                                        a.second.pressure() < b.second.pressure());
+                            });
 }
 
 void HighlightsBackend::response(Json::Value content, QNetworkReply* reply)
@@ -137,15 +146,16 @@ void HighlightsBackend::response(Json::Value content, QNetworkReply* reply)
     obj.m_Humidity    = data["Humidity"].asInt();
     obj.m_Visibility  = data["Visibility"].asInt();
 
-    emit highestTemperatureChanged();
-    emit strongestWindChanged();
-    emit lowestPressureChanged();
-    onActivated(0);
-
     auto children = reply->manager()->findChildren<QNetworkReply*>();
     if (std::all_of(children.begin(),
                     children.end(),
                     [](const QNetworkReply* child)
                     { return child->isFinished(); }))
+    {
+        onActivated(0);
+        m_HighestTemperature = &(calculateHightestTemperature()->second);
+        m_StrongestWind = &(calculateStrongestWind()->second);
+        m_LowestPressure = &(calculateLowestPressure()->second);
         emit allFinished();
+    }
 }

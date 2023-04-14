@@ -22,8 +22,14 @@ qt_add_executable(appOuluWeather
 
 qt_add_qml_module(appOuluWeather
     URI OuluWeather
+    NO_RESOURCE_TARGET_PATH
     VERSION 1.0
-    QML_FILES Main.qml Screen01.qml Overview.qml TestOverview.qml Highlights.qml
+    QML_FILES
+        Main.qml
+        Screen01.qml
+        Highlights.qml
+    RESOURCES
+        "qtquickcontrols2.conf"
 )
 
 target_include_directories(appOuluWeather PUBLIC vendor/)
@@ -38,8 +44,12 @@ set_target_properties(appOuluWeather PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-target_link_libraries(appOuluWeather
-    PRIVATE Qt6::Quick Qt6::QuickControls2 json_cpp
+target_link_libraries(appOuluWeather PRIVATE
+    Qt::Core
+    Qt::Gui
+    Qt6::Quick
+    Qt6::QuickControls2
+    json_cpp
 )
 
 install(TARGETS appOuluWeather

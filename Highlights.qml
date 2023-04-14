@@ -8,7 +8,6 @@ ColumnLayout {
 
     RowLayout {
         id: first_rowlayout
-//        Layout.fillHeight: true
         Layout.fillWidth: true
 
         Column {
@@ -32,13 +31,12 @@ ColumnLayout {
                 Layout.fillWidth: true
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                Text {
+                Label {
                     id: highestTemperature_text
                     text: "%1 C".arg((highestTemperature ?? { temperature: "-" }).temperature)
                     horizontalAlignment: Qt.AlignLeft
                     verticalAlignment: Qt.AlignVCenter
                     font.pointSize: 20
-//                    color: "black"
                 }
 
                 Label {
@@ -52,7 +50,7 @@ ColumnLayout {
                 }
             }
 
-            Text {
+            Label {
                 id: temperatureStation_text
                 text: ((highestTemperature ?? { name: "-" }).name)
                 color: 'gray'
@@ -81,13 +79,12 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
                 anchors.horizontalCenter: parent.horizontalCenter
-                Text {
+                Label {
                     id: strongestWind_text
                     text: "%1 m/s".arg((strongestWind ?? { windSpeedMS: "-" }).windSpeedMS)
                     horizontalAlignment: Qt.AlignLeft
                     verticalAlignment: Qt.AlignVCenter
                     font.pointSize: 20
-//                    color: "black"
                 }
 
                 Label {
@@ -101,7 +98,7 @@ ColumnLayout {
                 }
             }
 
-            Text {
+            Label {
                 id: windStation_text
                 text: ((strongestWind ?? { name: "-" }).name)
                 color: 'gray'
@@ -113,7 +110,6 @@ ColumnLayout {
 
     RowLayout {
         id: second_rowlayout
-//        Layout.fillHeight: true
         Layout.fillWidth: true
 
         Column {
@@ -136,13 +132,12 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
                 anchors.horizontalCenter: parent.horizontalCenter
-                Text {
+                Label {
                     id: lowestPressure_text
                     text: "%1 hPa".arg((lowestPressure ?? { pressure: "-" }).pressure)
                     horizontalAlignment: Qt.AlignLeft
                     verticalAlignment: Qt.AlignVCenter
                     font.pointSize: 20
-//                    color: "black"
                 }
 
                 Label {
@@ -156,7 +151,7 @@ ColumnLayout {
                 }
             }
 
-            Text {
+            Label {
                 id: pressureStation_text
                 text: ((lowestPressure ?? { name: "-" }).name)
                 color: 'gray'
