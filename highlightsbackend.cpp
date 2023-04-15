@@ -1,7 +1,8 @@
 #include "highlightsbackend.h"
+#include "qhostinfo.h"
 #include "stationforecastdata.h"
 
-#include <QThread>
+#include <QTimer>
 #include <algorithm>
 #include <iterator>
 #include <string>
@@ -12,6 +13,22 @@ const QStringList HighlightsBackend::s_Cities = {
     "Helsinki",
     "Lappeenranta"
 };
+
+// Json key mappings
+constexpr const char* c_MunicipalityCodeKey     = "municipalityCode";
+constexpr const char* c_ObservationStationsKey  = "observationStations";
+constexpr const char* c_DropDownItemsKey        = "dropdownItems";
+constexpr const char* c_ValueKey                = "value";
+constexpr const char* c_DistanceKey             = "distance";
+constexpr const char* c_StationKey              = "station";
+constexpr const char* c_ObservationsKey         = "observations";
+constexpr const char* c_TemperatureKey          = "t2m";
+constexpr const char* c_DewPointKey             = "DewPoint";
+constexpr const char* c_WindSpeedMSKey          = "WindSpeedMS";
+constexpr const char* c_WindGustKey             = "WindGust";
+constexpr const char* c_PressureKey             = "Pressure";
+constexpr const char* c_HumidityKey             = "Humidity";
+constexpr const char* c_VisibilityKey           = "Visibility";
 
 HighlightsBackend::HighlightsBackend(QObject *parent)
     : QObject{parent},
@@ -115,16 +132,16 @@ auto HighlightsBackend::calculateLowestPressure()
 void HighlightsBackend::response(Json::Value content, QNetworkReply* reply)
 {
     // Response 1 - fetchStations
-    if (content.isMember("municipalityCode"))
+    if (content.isMember(c_MunicipalityCodeKey))
     {
         m_Data.clear();
-        for (auto& v : content["observationStations"]
-                              ["dropdownItems"])
+        for (auto& v : content[c_ObservationStationsKey]
+                              [c_DropDownItemsKey])
         {
-            uint32_t id = v["value"].asUInt();
+            uint32_t id = v[c_ValueKey].asUInt();
             auto& obj = m_Data[id];
-            obj.m_Distance = v["distance"].asCString();
-            obj.m_Name     = v["station"].asCString();
+            obj.m_Distance = v[c_DistanceKey].asCString();
+            obj.m_Name     = v[c_StationKey].asCString();
             fetchForecastData(id);
             emit stationsChanged();
         }
@@ -132,19 +149,31 @@ void HighlightsBackend::response(Json::Value content, QNetworkReply* reply)
     }
 
     // Response 2 - fetchForcastData
-    auto observationsList = content["observations"];
-    auto data = observationsList[1007];
+    auto observationsList = content[c_ObservationsKey];
     auto query = reply->url().query();
     uint32_t id = query.split('&')[0].split('=')[1].toUInt();
 
-    auto& obj = m_Data[id];
-    obj.m_Temperature = data["t2m"].asFloat();
-    obj.m_DewPoint    = data["DewPoint"].asFloat();
-    obj.m_WindSpeedMS = data["WindSpeedMS"].asFloat();
-    obj.m_WindGust    = data["WindGust"].asFloat();
-    obj.m_Pressure    = data["Pressure"].asFloat();
-    obj.m_Humidity    = data["Humidity"].asInt();
-    obj.m_Visibility  = data["Visibility"].asInt();
+    if (observationsList.size() > 0)
+    {
+        uint32_t lastIndex = observationsList.size() - 1;
+        auto data = observationsList[lastIndex];
+        while (data[c_TemperatureKey].isNull())
+            data = observationsList[--lastIndex];
+
+        auto& obj = m_Data[id];
+        obj.m_Temperature = data[c_TemperatureKey].asFloat();
+        obj.m_DewPoint    = data[c_DewPointKey].asFloat();
+        obj.m_WindSpeedMS = data[c_WindSpeedMSKey].asFloat();
+        obj.m_WindGust    = data[c_WindGustKey].asFloat();
+        obj.m_Pressure    = data[c_PressureKey].asFloat();
+        obj.m_Humidity    = data[c_HumidityKey].asInt();
+        obj.m_Visibility  = data[c_VisibilityKey].asInt();
+    }
+    else
+    {
+        m_Data.erase(id);
+        emit stationsChanged();
+    }
 
     auto children = reply->manager()->findChildren<QNetworkReply*>();
     if (std::all_of(children.begin(),

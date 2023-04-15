@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <qqml.h>
+#include <QHostInfo>
 
 #include "networkservice.h"
 #include "stationforecastdata.h"
@@ -13,9 +14,6 @@ class HighlightsBackend : public QObject
     Q_PROPERTY(QStringList cities READ cities CONSTANT)
     Q_PROPERTY(QStringList stations READ stations NOTIFY stationsChanged)
 
-    Q_PROPERTY(StationForecastData* highestTemperature READ highestTemperature NOTIFY highestTemperatureChanged)
-    Q_PROPERTY(StationForecastData* strongestWind READ strongestWind NOTIFY strongestWindChanged)
-    Q_PROPERTY(StationForecastData* lowestPressure READ lowestPressure NOTIFY lowestPressureChanged)
     Q_PROPERTY(StationForecastData* selectedStation READ selectedStation NOTIFY selectedStationChanged)
     QML_ELEMENT
 
@@ -28,9 +26,9 @@ public:
     QStringList cities();
     QStringList stations();
 
-    StationForecastData *highestTemperature();
-    StationForecastData *strongestWind();
-    StationForecastData *lowestPressure();
+    Q_INVOKABLE StationForecastData *highestTemperature();
+    Q_INVOKABLE StationForecastData *strongestWind();
+    Q_INVOKABLE StationForecastData *lowestPressure();
     StationForecastData *selectedStation();
 
     Q_INVOKABLE void fetchStations(uint32_t cityIndex = 0);
@@ -39,12 +37,7 @@ public:
 
 signals:
     void stationsChanged();
-
-    void highestTemperatureChanged();
-    void strongestWindChanged();
-    void lowestPressureChanged();
     void selectedStationChanged();
-
     void allFinished();
 
 protected slots:

@@ -15,12 +15,12 @@ public:
     void get(QUrl);
 
 protected slots:
-    void parseJson(QNetworkReply *);
+    void parseJson(QNetworkReply*);
 
 signals:
     void networkError(QNetworkReply*);
     void parsingError(QString);
-    void readyResponse(Json::Value, QNetworkReply *);
+    void readyResponse(Json::Value, QNetworkReply*);
 
 private:
     QNetworkAccessManager m_Manager;

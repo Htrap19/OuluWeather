@@ -7,9 +7,9 @@ import Backend
 Page {
     id: base_page
 
-    property var highestTemperature: base_highlightsbackend.highestTemperature
-    property var strongestWind: base_highlightsbackend.strongestWind
-    property var lowestPressure: base_highlightsbackend.lowestPressure
+    property var highestTemperature: base_highlightsbackend.highestTemperature()
+    property var strongestWind: base_highlightsbackend.strongestWind()
+    property var lowestPressure: base_highlightsbackend.lowestPressure()
 
     function showIndicator(show: boolean) {
         base_indicator.running = show
@@ -21,9 +21,9 @@ Page {
 
         onAllFinished: {
             showIndicator(false)
-            base_page.highestTemperature = base_highlightsbackend.highestTemperature
-            base_page.strongestWind = base_highlightsbackend.strongestWind
-            base_page.lowestPressure = base_highlightsbackend.lowestPressure
+            base_page.highestTemperature = base_highlightsbackend.highestTemperature()
+            base_page.strongestWind = base_highlightsbackend.strongestWind()
+            base_page.lowestPressure = base_highlightsbackend.lowestPressure()
         }
     }
 
@@ -78,10 +78,6 @@ Page {
     ScrollView {
         id: base_scrollview
         anchors.fill: parent
-        contentWidth: base_columnlayout.width
-        contentHeight: base_columnlayout.height
-        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-        ScrollBar.horizontal.interactive: true
 
         ColumnLayout {
             id: base_columnlayout
@@ -122,7 +118,7 @@ Page {
                 }
                 Label {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    text: "%1 C".arg((base_highlightsbackend.selectedStation ?? { temperature: "-" }).temperature)
+                    text: "%1 \u2103".arg((base_highlightsbackend.selectedStation ?? { temperature: "-" }).temperature)
                 }
 
                 Label { text: qsTr("Humidity:") }
@@ -135,7 +131,7 @@ Page {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     text: qsTr("Dewpoint:")
                 }
-                Label { text: "%1 C".arg((base_highlightsbackend.selectedStation ?? { dewPoint: "-" }).dewPoint) }
+                Label { text: "%1 \u2103".arg((base_highlightsbackend.selectedStation ?? { dewPoint: "-" }).dewPoint) }
 
                 Label { text: qsTr("Wind:") }
                 Label { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windSpeedMS: "-" }).windSpeedMS) }

@@ -33,7 +33,7 @@ ColumnLayout {
 
                 Label {
                     id: highestTemperature_text
-                    text: "%1 C".arg((highestTemperature ?? { temperature: "-" }).temperature)
+                    text: "%1 \u2103".arg((highestTemperature ?? { temperature: "-" }).temperature)
                     horizontalAlignment: Qt.AlignLeft
                     verticalAlignment: Qt.AlignVCenter
                     font.pointSize: 20
