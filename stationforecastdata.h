@@ -1,6 +1,7 @@
 #ifndef STATIONFORECASTDATA_H
 #define STATIONFORECASTDATA_H
 
+#include "qtmetamacros.h"
 #include <QObject>
 #include <qqml.h>
 #include <cmath>
@@ -19,6 +20,10 @@ class StationForecastData : public QObject
     Q_PROPERTY(float humidity READ humidity NOTIFY humidityChanged)
     Q_PROPERTY(float visibility READ visibility NOTIFY visibilityChanged)
     QML_ELEMENT
+
+public:
+    static inline uint32_t INVALID_VALUE = 2e3;
+
 public:
     explicit StationForecastData(QObject *parent = nullptr);
 
@@ -44,15 +49,15 @@ signals:
     void visibilityChanged();
 
 public:
-    QString m_Distance;
-    QString m_Name;
-    float m_Temperature;
-    float m_DewPoint;
-    float m_WindSpeedMS;
-    float m_WindGust;
-    float m_Pressure;
-    int m_Humidity;
-    int m_Visibility;
+    std::optional<QString> m_Distance;
+    std::optional<QString> m_Name;
+    std::optional<float> m_Temperature;
+    std::optional<float> m_DewPoint;
+    std::optional<float> m_WindSpeedMS;
+    std::optional<float> m_WindGust;
+    std::optional<float> m_Pressure;
+    std::optional<int> m_Humidity;
+    std::optional<int> m_Visibility;
 };
 
 #endif // STATIONFORECASTDATA_H

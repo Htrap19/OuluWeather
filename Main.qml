@@ -5,8 +5,8 @@ import QtQuick.Layouts
 
 ApplicationWindow {
     id: main_window
-    width: 640
-    height: 480
+    width: 720
+    height: 640
     visible: true
     title: qsTr("Oulu Weather")
 

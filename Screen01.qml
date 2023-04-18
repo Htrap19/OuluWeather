@@ -16,6 +16,15 @@ Page {
         base_scrollview.enabled = !show
     }
 
+    function validateValue(value) {
+        if (base_highlightsbackend.selectedStation == null ||
+            base_highlightsbackend.selectedStation == undefined ||
+            value === 2000) // TODO: grab invalid value from backend(c++)
+            return "-";
+
+        return value;
+    }
+
     HighlightsBackend {
         id: base_highlightsbackend
 
@@ -78,17 +87,27 @@ Page {
     ScrollView {
         id: base_scrollview
         anchors.fill: parent
+        contentWidth: base_columnlayout.width
+        contentHeight: base_columnlayout.Height
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        bottomPadding: 20
 
         ColumnLayout {
             id: base_columnlayout
             width: Math.max(implicitWidth, base_scrollview.availableWidth)
             height: Math.max(implicitHeight, base_scrollview.availableHeight)
 
-            Highlights {
+            HighlightsSwipe {
                 Layout.fillWidth: true
-                Layout.fillHeight: false
+                Layout.fillHeight: true
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
             }
+
+//            Highlights {
+//                Layout.fillWidth: true
+//                Layout.fillHeight: true
+//                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+//            }
 
             GridLayout {
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
@@ -118,29 +137,31 @@ Page {
                 }
                 Label {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
-                    text: "%1 \u2103".arg((base_highlightsbackend.selectedStation ?? { temperature: "-" }).temperature)
+                    text: "%1 \u2103".arg(validateValue(base_highlightsbackend.selectedStation?.temperature))
                 }
 
                 Label { text: qsTr("Humidity:") }
-                Label { text: "%1 %".arg((base_highlightsbackend.selectedStation ?? { humidity: "-" }).humidity) }
+                Label { text: "%1 %".arg(validateValue(base_highlightsbackend.selectedStation?.humidity)) }
 
                 Label { text: qsTr("Visibility:") }
-                Label { text: "over %1 km".arg((base_highlightsbackend.selectedStation ?? { visibility: 0 }).visibility / 1000.0) }
+                Label { text: "over %1 km".arg(validateValue(base_highlightsbackend.selectedStation?.visibility) === "-" ?
+                                                   "-" :
+                                                   base_highlightsbackend.selectedStation.visibility / 1000.0) }
 
                 Label {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     text: qsTr("Dewpoint:")
                 }
-                Label { text: "%1 \u2103".arg((base_highlightsbackend.selectedStation ?? { dewPoint: "-" }).dewPoint) }
+                Label { text: "%1 \u2103".arg(validateValue(base_highlightsbackend.selectedStation?.dewPoint)) }
 
                 Label { text: qsTr("Wind:") }
-                Label { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windSpeedMS: "-" }).windSpeedMS) }
+                Label { text: "%1 m/s".arg(validateValue(base_highlightsbackend.selectedStation?.windSpeedMS)) }
 
                 Label { text: qsTr("Wind gusts:") }
-                Label { text: "%1 m/s".arg((base_highlightsbackend.selectedStation ?? { windGust: "-" } ).windGust) }
+                Label { text: "%1 m/s".arg(validateValue(base_highlightsbackend.selectedStation?.windGust)) }
 
                 Label { text: qsTr("Pressure:") }
-                Label { text: "%1 hPa".arg((base_highlightsbackend.selectedStation ?? { pressure: "-" }).pressure) }
+                Label { text: "%1 hPa".arg(validateValue(base_highlightsbackend.selectedStation?.pressure)) }
             }
         }
     }

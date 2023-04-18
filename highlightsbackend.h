@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include <qqml.h>
-#include <QHostInfo>
 
 #include "networkservice.h"
 #include "stationforecastdata.h"

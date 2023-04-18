@@ -1,17 +1,26 @@
 #include "highlightsbackend.h"
-#include "qhostinfo.h"
 #include "stationforecastdata.h"
 
 #include <QTimer>
 #include <algorithm>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <utility>
+
+#define assign_opt(key, assignTo, as)\
+if (data[key].isNull())\
+    obj.assignTo = std::nullopt;\
+else\
+    obj.assignTo = data[key].as();
 
 const QStringList HighlightsBackend::s_Cities = {
     "Oulu",
     "Helsinki",
-    "Lappeenranta"
+    "Lappeenranta",
+    "Espoo",
+    "Tampere",
+    "Vantaa"
 };
 
 // Json key mappings
@@ -29,6 +38,9 @@ constexpr const char* c_WindGustKey             = "WindGust";
 constexpr const char* c_PressureKey             = "Pressure";
 constexpr const char* c_HumidityKey             = "Humidity";
 constexpr const char* c_VisibilityKey           = "Visibility";
+
+constexpr const char* c_StationsUrl = "https://en.ilmatieteenlaitos.fi/api/weather/forecasts?place=%1";
+constexpr const char* c_ForecastUrl = "https://en.ilmatieteenlaitos.fi/api/weather/observations?fmisid=%1&observations=true";
 
 HighlightsBackend::HighlightsBackend(QObject *parent)
     : QObject{parent},
@@ -76,13 +88,13 @@ StationForecastData *HighlightsBackend::selectedStation()
 
 void HighlightsBackend::fetchStations(uint32_t cityIndex)
 {
-    m_Service.get(QUrl(QString("https://en.ilmatieteenlaitos.fi/api/weather/forecasts?place=%1")
+    m_Service.get(QUrl(QString(c_StationsUrl)
                            .arg(s_Cities[cityIndex].toLower())));
 }
 
 void HighlightsBackend::fetchForecastData(uint32_t stationId)
 {
-    auto url = QString("https://en.ilmatieteenlaitos.fi/api/weather/observations?fmisid=%1&observations=true")
+    auto url = QString(c_ForecastUrl)
                    .arg(QString::number(stationId));
     m_Service.get(QUrl(url));
 }
@@ -113,7 +125,14 @@ auto HighlightsBackend::calculateStrongestWind()
                             [](ForecastData::value_type& a,
                                ForecastData::value_type& b)
                             {
-                                return a.second.windSpeedMS() < b.second.windSpeedMS();
+                                auto aValue = a.second.windSpeedMS();
+                                auto bValue = b.second.windSpeedMS();
+
+                                if (aValue == StationForecastData::INVALID_VALUE)
+                                    aValue = 0;
+                                if (bValue == StationForecastData::INVALID_VALUE)
+                                    bValue = 0;
+                                return aValue < bValue;
                             });
 }
 
@@ -124,8 +143,7 @@ auto HighlightsBackend::calculateLowestPressure()
                             [](ForecastData::value_type& a,
                                ForecastData::value_type& b)
                             {
-                                return (b.second.pressure() == 0 ||
-                                        a.second.pressure() < b.second.pressure());
+                                return a.second.pressure() < b.second.pressure();
                             });
 }
 
@@ -161,13 +179,13 @@ void HighlightsBackend::response(Json::Value content, QNetworkReply* reply)
             data = observationsList[--lastIndex];
 
         auto& obj = m_Data[id];
-        obj.m_Temperature = data[c_TemperatureKey].asFloat();
-        obj.m_DewPoint    = data[c_DewPointKey].asFloat();
-        obj.m_WindSpeedMS = data[c_WindSpeedMSKey].asFloat();
-        obj.m_WindGust    = data[c_WindGustKey].asFloat();
-        obj.m_Pressure    = data[c_PressureKey].asFloat();
-        obj.m_Humidity    = data[c_HumidityKey].asInt();
-        obj.m_Visibility  = data[c_VisibilityKey].asInt();
+        assign_opt(c_TemperatureKey, m_Temperature, asFloat);
+        assign_opt(c_DewPointKey,    m_DewPoint,    asFloat);
+        assign_opt(c_WindSpeedMSKey, m_WindSpeedMS, asFloat);
+        assign_opt(c_WindGustKey,    m_WindGust,    asFloat);
+        assign_opt(c_PressureKey,    m_Pressure,    asFloat);
+        assign_opt(c_HumidityKey,    m_Humidity,    asInt);
+        assign_opt(c_VisibilityKey,  m_Visibility,  asInt);
     }
     else
     {

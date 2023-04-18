@@ -7,46 +7,73 @@ StationForecastData::StationForecastData(QObject *parent)
 
 QString StationForecastData::distance() const
 {
-    return m_Distance;
+    if (!m_Distance)
+        return "";
+
+    return m_Distance.value();
 }
 
 QString StationForecastData::name() const
 {
-    return m_Name;
+    if (!m_Name)
+        return "";
+
+    return m_Name.value();
 }
 
 float StationForecastData::temperature() const
 {
-    return m_Temperature;
+    if (!m_Temperature)
+        return INVALID_VALUE;
+
+    return m_Temperature.value();
 }
 
 float StationForecastData::dewPoint() const
 {
-    return m_DewPoint;
+    if (!m_DewPoint)
+        return INVALID_VALUE;
+
+    return m_DewPoint.value();
 }
 
 
 float StationForecastData::windSpeedMS() const
 {
-    return m_WindSpeedMS;
+    if (!m_WindSpeedMS)
+        return INVALID_VALUE;
+
+    return m_WindSpeedMS.value();
 }
 
 float StationForecastData::windGust() const
 {
-    return m_WindGust;
+    if (!m_WindGust)
+        return INVALID_VALUE;
+
+    return m_WindGust.value();
 }
 
 float StationForecastData::pressure() const
 {
-    return m_Pressure;
+    if (!m_Pressure)
+        return INVALID_VALUE;
+
+    return m_Pressure.value();
 }
 
 int StationForecastData::humidity() const
 {
-    return m_Humidity;
+    if (!m_Humidity)
+        return INVALID_VALUE;
+
+    return m_Humidity.value();
 }
 
 int StationForecastData::visibility() const
 {
-    return m_Visibility;
+    if (!m_Visibility)
+        return INVALID_VALUE;
+
+    return m_Visibility.value();
 }

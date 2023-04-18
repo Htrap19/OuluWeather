@@ -5,6 +5,7 @@
 #include <QSettings>
 
 #include "highlightsbackend.h"
+#include "qqml.h"
 
 int main(int argc, char *argv[])
 {

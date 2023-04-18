@@ -28,6 +28,7 @@ qt_add_qml_module(appOuluWeather
         Main.qml
         Screen01.qml
         Highlights.qml
+        HighlightsSwipe.qml
     RESOURCES
         "qtquickcontrols2.conf"
 )
