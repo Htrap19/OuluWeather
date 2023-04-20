@@ -1,10 +1,8 @@
 #include "highlightsbackend.h"
 #include "stationforecastdata.h"
 
-#include <QTimer>
 #include <algorithm>
 #include <iterator>
-#include <optional>
 #include <string>
 #include <utility>
 
@@ -66,24 +64,29 @@ QStringList HighlightsBackend::stations()
     return names;
 }
 
-StationForecastData *HighlightsBackend::highestTemperature()
+StationForecastData *HighlightsBackend::highestTemperature() const
 {
     return m_HighestTemperature;
 }
 
-StationForecastData *HighlightsBackend::strongestWind()
+StationForecastData *HighlightsBackend::strongestWind() const
 {
     return m_StrongestWind;
 }
 
-StationForecastData *HighlightsBackend::lowestPressure()
+StationForecastData *HighlightsBackend::lowestPressure() const
 {
     return m_LowestPressure;
 }
 
-StationForecastData *HighlightsBackend::selectedStation()
+StationForecastData *HighlightsBackend::selectedStation() const
 {
     return m_SelectedStation;
+}
+
+uint32_t HighlightsBackend::INVALID_VALUE() const
+{
+    return StationForecastData::INVALID_VALUE;
 }
 
 void HighlightsBackend::fetchStations(uint32_t cityIndex)
@@ -94,9 +97,8 @@ void HighlightsBackend::fetchStations(uint32_t cityIndex)
 
 void HighlightsBackend::fetchForecastData(uint32_t stationId)
 {
-    auto url = QString(c_ForecastUrl)
-                   .arg(QString::number(stationId));
-    m_Service.get(QUrl(url));
+    m_Service.get(QUrl(QString(c_ForecastUrl)
+                           .arg(QString::number(stationId))));
 }
 
 void HighlightsBackend::onActivated(int index)

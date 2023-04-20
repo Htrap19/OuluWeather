@@ -19,7 +19,7 @@ Page {
     function validateValue(value) {
         if (base_highlightsbackend.selectedStation == null ||
             base_highlightsbackend.selectedStation == undefined ||
-            value === 2000) // TODO: grab invalid value from backend(c++)
+            value === base_highlightsbackend.INVALID_VALUE)
             return "-";
 
         return value;
@@ -146,7 +146,7 @@ Page {
                 Label { text: qsTr("Visibility:") }
                 Label { text: "over %1 km".arg(validateValue(base_highlightsbackend.selectedStation?.visibility) === "-" ?
                                                    "-" :
-                                                   base_highlightsbackend.selectedStation.visibility / 1000.0) }
+                                                   (base_highlightsbackend.selectedStation.visibility / 1000.0).toFixed(1)) }
 
                 Label {
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter

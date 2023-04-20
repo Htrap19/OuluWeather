@@ -14,6 +14,7 @@ class HighlightsBackend : public QObject
     Q_PROPERTY(QStringList stations READ stations NOTIFY stationsChanged)
 
     Q_PROPERTY(StationForecastData* selectedStation READ selectedStation NOTIFY selectedStationChanged)
+    Q_PROPERTY(uint32_t INVALID_VALUE READ INVALID_VALUE CONSTANT)
     QML_ELEMENT
 
 public:
@@ -25,10 +26,12 @@ public:
     QStringList cities();
     QStringList stations();
 
-    Q_INVOKABLE StationForecastData *highestTemperature();
-    Q_INVOKABLE StationForecastData *strongestWind();
-    Q_INVOKABLE StationForecastData *lowestPressure();
-    StationForecastData *selectedStation();
+    StationForecastData *selectedStation() const;
+    uint32_t INVALID_VALUE() const;
+
+    Q_INVOKABLE StationForecastData *highestTemperature() const;
+    Q_INVOKABLE StationForecastData *strongestWind() const;
+    Q_INVOKABLE StationForecastData *lowestPressure() const;
 
     Q_INVOKABLE void fetchStations(uint32_t cityIndex = 0);
     Q_INVOKABLE void fetchForecastData(uint32_t stationId);

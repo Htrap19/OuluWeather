@@ -1,7 +1,6 @@
 #ifndef STATIONFORECASTDATA_H
 #define STATIONFORECASTDATA_H
 
-#include "qtmetamacros.h"
 #include <QObject>
 #include <qqml.h>
 #include <cmath>
@@ -22,7 +21,7 @@ class StationForecastData : public QObject
     QML_ELEMENT
 
 public:
-    static inline uint32_t INVALID_VALUE = 2e3;
+    static inline uint32_t INVALID_VALUE = 1e5;
 
 public:
     explicit StationForecastData(QObject *parent = nullptr);
